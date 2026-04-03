@@ -16,6 +16,7 @@ case "$SERVICE" in
     echo "Deploying API..."
     cd game-price-api && git pull origin main
     cd ../game-price-infra
+    grep -q "DB_SSL" .env || echo "DB_SSL=true" >> .env
     docker compose -f docker-compose.prod.yml up -d --build api
     ;;
   web)
