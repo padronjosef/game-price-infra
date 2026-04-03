@@ -96,6 +96,11 @@ resource "aws_instance" "app" {
   tags = {
     Name = "game-price-app"
   }
+
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes  = [ami, user_data]
+  }
 }
 
 resource "aws_eip" "app" {
