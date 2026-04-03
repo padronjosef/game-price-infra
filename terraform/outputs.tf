@@ -4,8 +4,8 @@ output "ec2_public_ip" {
 }
 
 output "domain" {
-  description = "DuckDNS domain"
-  value       = "${var.duckdns_domain}.duckdns.org"
+  description = "App domain"
+  value       = var.domain
 }
 
 output "ssh_command" {

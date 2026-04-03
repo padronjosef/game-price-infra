@@ -45,15 +45,26 @@ resource "aws_iam_role_policy" "ec2_secrets" {
 
   policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [{
-      Effect   = "Allow"
-      Action   = ["secretsmanager:GetSecretValue"]
-      Resource = [
-        aws_secretsmanager_secret.db_password.arn,
-        aws_secretsmanager_secret.duckdns_token.arn,
-        aws_secretsmanager_secret.github_deploy_key.arn,
-      ]
-    }]
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["secretsmanager:GetSecretValue"]
+        Resource = [
+          aws_secretsmanager_secret.db_password.arn,
+          aws_secretsmanager_secret.github_deploy_key.arn,
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogStreams",
+        ]
+        Resource = ["arn:aws:logs:*:*:*"]
+      }
+    ]
   })
 }
 
@@ -70,12 +81,11 @@ resource "aws_instance" "app" {
   iam_instance_profile   = aws_iam_instance_profile.ec2_app.name
 
   user_data = templatefile("${path.module}/scripts/user-data.sh", {
-    db_host                = aws_db_instance.postgres.address
-    db_secret_id           = aws_secretsmanager_secret.db_password.id
-    duckdns_secret_id      = aws_secretsmanager_secret.duckdns_token.id
+    db_host                 = aws_db_instance.postgres.address
+    db_secret_id            = aws_secretsmanager_secret.db_password.id
     github_deploy_secret_id = aws_secretsmanager_secret.github_deploy_key.id
-    aws_region             = var.aws_region
-    duckdns_domain         = var.duckdns_domain
+    aws_region              = var.aws_region
+    domain                  = var.domain
   })
 
   root_block_device {

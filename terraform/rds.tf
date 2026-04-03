@@ -35,17 +35,6 @@ resource "aws_secretsmanager_secret_version" "github_deploy_key" {
   secret_string = tls_private_key.github_deploy.private_key_openssh
 }
 
-resource "aws_secretsmanager_secret" "duckdns_token" {
-  name                    = "game-price/duckdns-token"
-  description             = "DuckDNS token for dynamic DNS"
-  recovery_window_in_days = 7
-}
-
-resource "aws_secretsmanager_secret_version" "duckdns_token" {
-  secret_id     = aws_secretsmanager_secret.duckdns_token.id
-  secret_string = var.duckdns_token
-}
-
 resource "aws_db_instance" "postgres" {
   identifier = "game-price-db"
 

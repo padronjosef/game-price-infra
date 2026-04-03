@@ -4,14 +4,8 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
-variable "duckdns_token" {
-  description = "DuckDNS token — stored in Secrets Manager, never in plain text"
-  type        = string
-  sensitive   = true
-}
-
-variable "duckdns_domain" {
-  description = "DuckDNS subdomain (e.g. 'game-price' for game-price.duckdns.org)"
+variable "domain" {
+  description = "Domain name (e.g. game-price-finder.com)"
   type        = string
 }
 
