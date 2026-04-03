@@ -3,9 +3,6 @@ name: Deploy Infra
 on:
   push:
     branches: [main]
-    paths:
-      - "docker-compose.prod.yml"
-      - "nginx/**"
 
 jobs:
   deploy:
