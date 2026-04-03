@@ -49,7 +49,7 @@ services:
       - ../game-price-web/public:/app/public
       - ../game-price-web/next.config.ts:/app/next.config.ts
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:3002/api
+      INTERNAL_API_URL: http://api:3000
       PORT: "3003"
       WATCHPACK_POLLING: "true"
     depends_on:

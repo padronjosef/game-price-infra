@@ -7,10 +7,10 @@ Infrastructure and orchestration for the Game Price Finder project.
 ```
                     Internet
                        |
-                   port 80
+               ports 80, 443
                        |
                   +---------+
-                  |  Nginx  |
+                  |  Nginx  |  (SSL termination, Let's Encrypt)
                   +---------+
                        |
                   +---------+
@@ -35,12 +35,19 @@ Infrastructure and orchestration for the Game Price Finder project.
 
 ### Network Security
 
-- **Nginx**: Only service exposed to the internet (port 80). Proxies everything to Next.js.
+- **Nginx**: Only service exposed to the internet (ports 80 and 443). HTTP redirects to HTTPS. SSL terminated here with Let's Encrypt certificates.
 - **Next.js (web)**: Serves the frontend. API calls from the browser go to Next.js route handlers, which proxy internally to the backend. The browser never talks to the API directly.
 - **NestJS (api)**: Runs inside the VPC only. Not accessible from outside. Only Next.js can reach it via Docker's internal network.
 - **RDS (PostgreSQL)**: Only accessible from the EC2 instance's security group. Not exposed to the internet. Only the API can connect to it.
 
 **No one outside the VPC can reach the API or the database. Ever.**
+
+### SSL/HTTPS
+
+- Certificates are obtained automatically via **Let's Encrypt** (certbot) during EC2 bootstrap
+- HTTP traffic on port 80 is redirected to HTTPS (port 443)
+- Certificates are renewed automatically twice daily via cron
+- Nginx config is generated from `nginx/nginx.conf.template` with the domain injected
 
 ---
 
@@ -52,24 +59,25 @@ Infrastructure and orchestration for the Game Price Finder project.
 | RDS | db.t3.micro PostgreSQL 16 | Free tier (750 hrs/month, 12 months) |
 | Elastic IP | 1 | Free while instance is running |
 | S3 | Terraform state bucket (versioned) | Free tier |
-| Secrets Manager | 3 secrets (DB password, DuckDNS token, deploy key) | Free tier (10,000 API calls/month) |
+| Secrets Manager | 2 secrets (DB password, GitHub deploy key) | Free tier (10,000 API calls/month) |
+| CloudWatch | Log agent (cloud-init, certbot logs, 7-day retention) | Free tier |
 | Domain | DuckDNS subdomain | Free |
 
 ### What Terraform creates
 
 - EC2 instance with Docker, 2GB swap, and all three repos cloned
 - RDS PostgreSQL with 7-day automatic backups and delete protection
-- Security group for EC2 (ports 80 and 22 only)
+- Security group for EC2 (ports 80, 443, and 22)
 - Security group for RDS (port 5432 from EC2 only)
 - Elastic IP attached to the EC2 instance
 - SSH key for GitHub repo access
 - IAM role for EC2 with Secrets Manager read access
+- CloudWatch Agent collecting cloud-init and certbot logs (7-day retention)
 - **AWS Secrets Manager** secrets for:
   - `game-price/db-password` — auto-generated 32-char PostgreSQL password
-  - `game-price/duckdns-token` — DuckDNS API token
   - `game-price/github-deploy-key` — SSH private key for GitHub access
 
-No secrets are hardcoded in the EC2 instance. All sensitive values are fetched at boot time from Secrets Manager via IAM role.
+No secrets are hardcoded in the EC2 instance. All sensitive values are fetched at boot time from Secrets Manager via IAM role. The DuckDNS token is provided via `terraform.tfvars`.
 
 ---
 
@@ -130,7 +138,7 @@ Add these secrets to **all three** repos (Settings → Secrets → Actions):
 
 ### Step 6: Done
 
-- Your app is live at `http://<your-subdomain>.duckdns.org`
+- Your app is live at `https://<your-subdomain>.duckdns.org`
 - Every push to `main` in the API or Web repo triggers automatic deployment
 - The database is backed up daily with 7-day retention
 
@@ -199,7 +207,8 @@ game-price-infra/
   docker-compose.yml        # Local development
   docker-compose.prod.yml   # Production (Nginx + Web + API, DB is RDS)
   nginx/
-    nginx.conf              # Reverse proxy (port 80 → Next.js)
+    nginx.conf              # Generated HTTPS config (do not edit directly)
+    nginx.conf.template     # Nginx template with SSL (used to generate nginx.conf)
   terraform/
     main.tf                 # AWS provider, S3 backend
     variables.tf            # Input variables
