@@ -28,7 +28,8 @@ systemctl enable docker
 usermod -aG docker ubuntu
 
 # --- CloudWatch Agent ---
-curl -sO https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb
+ARCH=$(dpkg --print-architecture)
+curl -sO "https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/$ARCH/latest/amazon-cloudwatch-agent.deb"
 dpkg -i amazon-cloudwatch-agent.deb
 rm amazon-cloudwatch-agent.deb
 
