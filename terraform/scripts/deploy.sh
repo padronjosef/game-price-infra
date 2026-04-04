@@ -16,10 +16,12 @@ if [ -f "$ENV_FILE" ]; then
 fi
 
 regenerate_nginx() {
-  if [ -n "$DOMAIN" ] && [ -f "$APP_DIR/game-price-infra/nginx/nginx.conf.template" ]; then
-    envsubst '$$DOMAIN' < "$APP_DIR/game-price-infra/nginx/nginx.conf.template" > "$APP_DIR/game-price-infra/nginx/nginx.conf"
-    echo "Nginx config regenerated for $DOMAIN"
+  if [ -z "$DOMAIN" ]; then
+    echo "ERROR: DOMAIN is empty — refusing to regenerate nginx config"
+    exit 1
   fi
+  envsubst '$$DOMAIN' < "$APP_DIR/game-price-infra/nginx/nginx.conf.template" > "$APP_DIR/game-price-infra/nginx/nginx.conf"
+  echo "Nginx config regenerated for $DOMAIN"
 }
 
 cd "$APP_DIR"
@@ -36,7 +38,9 @@ case "$SERVICE" in
     echo "Deploying Web..."
     cd game-price-web && git pull origin main
     cd ../game-price-infra
+    regenerate_nginx
     docker compose -f docker-compose.prod.yml up -d --build web
+    docker compose -f docker-compose.prod.yml restart nginx
     ;;
   infra)
     echo "Deploying Infra..."
