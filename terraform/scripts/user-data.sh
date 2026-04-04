@@ -62,7 +62,7 @@ CW_CONFIG
   -a fetch-config -m ec2 \
   -c file:/opt/aws/amazon-cloudwatch-agent/etc/config.json -s
 
-# --- SSH key for GitHub ---
+# --- SSH key for GitHub (needed for infra repo) ---
 mkdir -p /home/ubuntu/.ssh
 cat <<'DEPLOY_KEY' > /home/ubuntu/.ssh/github_deploy
 ${github_deploy_key}
@@ -70,7 +70,6 @@ DEPLOY_KEY
 chmod 600 /home/ubuntu/.ssh/github_deploy
 chown -R ubuntu:ubuntu /home/ubuntu/.ssh
 
-# Configure SSH to use deploy key for GitHub
 cat <<'SSH_CONFIG' > /home/ubuntu/.ssh/config
 Host github.com
   HostName github.com
@@ -82,12 +81,10 @@ SSH_CONFIG
 chmod 600 /home/ubuntu/.ssh/config
 chown ubuntu:ubuntu /home/ubuntu/.ssh/config
 
-# --- Clone repos ---
+# --- Clone infra repo only ---
 mkdir -p "$APP_DIR"
 chown ubuntu:ubuntu "$APP_DIR"
 
-sudo -u ubuntu git clone git@github.com:padronjosef/game-price-api.git "$APP_DIR/game-price-api"
-sudo -u ubuntu git clone git@github.com:padronjosef/game-price-web.git "$APP_DIR/game-price-web"
 sudo -u ubuntu git clone git@github.com:padronjosef/game-price-infra.git "$APP_DIR/game-price-infra"
 
 # --- Create .env for production ---
@@ -120,11 +117,13 @@ certbot certonly --standalone \
 export DOMAIN="${domain}"
 envsubst '$$DOMAIN' < "$APP_DIR/game-price-infra/nginx/nginx.conf.template" > "$APP_DIR/game-price-infra/nginx/nginx.conf"
 
-# --- Start services ---
+# --- Start services (pull pre-built images from GHCR) ---
 cd "$APP_DIR/game-price-infra"
-sudo -u ubuntu docker compose -f docker-compose.prod.yml up -d --build
+sudo -u ubuntu docker compose -f docker-compose.prod.yml pull
+sudo -u ubuntu docker compose -f docker-compose.prod.yml up -d
 
-# --- Cron: cert renewal (twice daily) ---
+# --- Cron: cert renewal + weekly Docker cleanup ---
 cat <<'CRON' | crontab -
 0 0,12 * * * cd /opt/game-price-finder/game-price-infra && docker compose -f docker-compose.prod.yml stop nginx && certbot renew --quiet && docker compose -f docker-compose.prod.yml start nginx
+0 3 * * 0 docker image prune -af && docker builder prune -af
 CRON

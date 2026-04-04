@@ -27,9 +27,7 @@ services:
       - web
 
   web:
-    build:
-      context: ../game-price-web
-      dockerfile: Dockerfile
+    image: ghcr.io/padronjosef/game-price-web:latest
     restart: unless-stopped
     environment:
       INTERNAL_API_URL: http://api:3000
@@ -37,12 +35,8 @@ services:
       - api
 
   api:
-    build:
-      context: ../game-price-api
-      dockerfile: Dockerfile
+    image: ghcr.io/padronjosef/game-price-api:latest
     restart: unless-stopped
-    env_file:
-      - .env
     environment:
       PORT: "3000"
       DB_HOST: db

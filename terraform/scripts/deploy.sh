@@ -24,42 +24,42 @@ regenerate_nginx() {
   echo "Nginx config regenerated for $DOMAIN"
 }
 
-cd "$APP_DIR"
+cd "$APP_DIR/game-price-infra"
 
 case "$SERVICE" in
   api)
     echo "Deploying API..."
-    cd game-price-api && git pull origin main
-    cd ../game-price-infra
-    grep -q "DB_SSL" .env || echo "DB_SSL=true" >> .env
-    docker compose -f docker-compose.prod.yml up -d --build api
+    docker compose -f docker-compose.prod.yml pull api
+    docker compose -f docker-compose.prod.yml up -d api
     ;;
   web)
     echo "Deploying Web..."
-    cd game-price-web && git pull origin main
-    cd ../game-price-infra
     regenerate_nginx
-    docker compose -f docker-compose.prod.yml up -d --build web
+    docker compose -f docker-compose.prod.yml pull web
+    docker compose -f docker-compose.prod.yml up -d web
     docker compose -f docker-compose.prod.yml restart nginx
     ;;
   infra)
     echo "Deploying Infra..."
-    cd game-price-infra && git checkout -- . && git pull origin main
+    git checkout -- . && git pull origin main
     regenerate_nginx
-    docker compose -f docker-compose.prod.yml up -d --build
+    docker compose -f docker-compose.prod.yml pull
+    docker compose -f docker-compose.prod.yml up -d
     ;;
   all)
     echo "Deploying all..."
-    cd game-price-api && git pull origin main && cd ..
-    cd game-price-web && git pull origin main && cd ..
-    cd game-price-infra && git checkout -- . && git pull origin main
+    git checkout -- . && git pull origin main
     regenerate_nginx
-    docker compose -f docker-compose.prod.yml up -d --build
+    docker compose -f docker-compose.prod.yml pull
+    docker compose -f docker-compose.prod.yml up -d
     ;;
   *)
     echo "Unknown service: $SERVICE"
     exit 1
     ;;
 esac
+
+# Clean up old images
+docker image prune -f
 
 echo "Deploy complete."
