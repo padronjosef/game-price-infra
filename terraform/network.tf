@@ -51,22 +51,3 @@ resource "aws_security_group" "ec2" {
     Name = "game-price-ec2"
   }
 }
-
-# RDS Security Group — only accessible from EC2
-resource "aws_security_group" "rds" {
-  name        = "game-price-rds"
-  description = "Allow PostgreSQL from EC2 only"
-  vpc_id      = data.aws_vpc.default.id
-
-  ingress {
-    description     = "PostgreSQL from EC2"
-    from_port       = 5432
-    to_port         = 5432
-    protocol        = "tcp"
-    security_groups = [aws_security_group.ec2.id]
-  }
-
-  tags = {
-    Name = "game-price-rds"
-  }
-}

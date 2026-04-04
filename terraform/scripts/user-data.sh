@@ -93,22 +93,10 @@ sudo -u ubuntu git clone git@github.com:padronjosef/game-price-api.git "$APP_DIR
 sudo -u ubuntu git clone git@github.com:padronjosef/game-price-web.git "$APP_DIR/game-price-web"
 sudo -u ubuntu git clone git@github.com:padronjosef/game-price-infra.git "$APP_DIR/game-price-infra"
 
-# --- Fetch secrets from Secrets Manager ---
-DB_PASSWORD=$(aws secretsmanager get-secret-value \
-  --secret-id "${db_secret_id}" \
-  --region "${aws_region}" \
-  --query SecretString \
-  --output text)
-
 # --- Create .env for production ---
 cat <<ENV > "$APP_DIR/game-price-infra/.env"
-DB_HOST=${db_host}
-DB_PORT=5432
-DB_USERNAME=postgres
-DB_PASSWORD=$DB_PASSWORD
-DB_NAME=game_prices
 INTERNAL_API_URL=http://api:3000
-DB_SSL=true
+WEB_APP_DOMAIN=${domain}
 ENV
 chown ubuntu:ubuntu "$APP_DIR/game-price-infra/.env"
 

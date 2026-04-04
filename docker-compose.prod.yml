@@ -1,4 +1,19 @@
 services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: game_prices
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   nginx:
     image: nginx:alpine
     restart: unless-stopped
@@ -30,8 +45,18 @@ services:
       - .env
     environment:
       PORT: "3000"
+      DB_HOST: db
+      DB_PORT: "5432"
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: game_prices
+      DB_SSL: "false"
+    depends_on:
+      db:
+        condition: service_healthy
 
 volumes:
+  pgdata:
   letsencrypt:
     driver: local
     driver_opts:

@@ -13,10 +13,6 @@ output "ssh_command" {
   value       = "ssh ubuntu@${aws_eip.app.public_ip}"
 }
 
-output "rds_endpoint" {
-  description = "RDS PostgreSQL endpoint (internal only)"
-  value       = aws_db_instance.postgres.address
-}
 
 output "github_deploy_public_key" {
   description = "Add this as a deploy key (read-only) to each GitHub repo"
