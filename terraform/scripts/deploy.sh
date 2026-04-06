@@ -44,14 +44,14 @@ case "$SERVICE" in
     ;;
   infra)
     echo "Deploying Infra..."
-    git checkout -- . && git pull origin main
+    git fetch origin && git reset --hard origin/main
     regenerate_nginx
     docker compose -f docker-compose.prod.yml pull
     docker compose -f docker-compose.prod.yml up -d
     ;;
   all)
     echo "Deploying all..."
-    git checkout -- . && git pull origin main
+    git fetch origin && git reset --hard origin/main
     regenerate_nginx
     docker compose -f docker-compose.prod.yml pull
     docker compose -f docker-compose.prod.yml up -d
