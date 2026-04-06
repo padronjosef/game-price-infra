@@ -24,6 +24,14 @@ jobs:
       - name: Bump version
         run: bash scripts/bump-version.sh
 
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: /opt/nukaloot/nukaloot-infra/terraform/scripts/deploy.sh infra
+
       - name: Push version bump
         if: env.BUMPED == 'true'
         run: git push --force-with-lease
@@ -44,11 +52,3 @@ jobs:
           gh release create "v$NEW_VERSION" \
             --title "v$NEW_VERSION" \
             --notes "$CHANGELOG"
-
-      - name: Deploy to EC2
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ubuntu
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: /opt/nukaloot/nukaloot-infra/terraform/scripts/deploy.sh infra
