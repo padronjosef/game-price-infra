@@ -1,6 +1,6 @@
 # SSH key pair for EC2 access
 resource "aws_key_pair" "deployer" {
-  key_name   = "game-price-deployer"
+  key_name   = "nukaloot-deployer"
   public_key = file(var.ssh_public_key_path)
 }
 
@@ -11,7 +11,7 @@ resource "tls_private_key" "github_deploy" {
 
 # IAM role so EC2 can push CloudWatch logs
 resource "aws_iam_role" "ec2_app" {
-  name = "game-price-ec2-role"
+  name = "nukaloot-ec2-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -45,7 +45,7 @@ resource "aws_iam_role_policy" "ec2_logs" {
 }
 
 resource "aws_iam_instance_profile" "ec2_app" {
-  name = "game-price-ec2-profile"
+  name = "nukaloot-ec2-profile"
   role = aws_iam_role.ec2_app.name
 }
 
@@ -67,12 +67,11 @@ resource "aws_instance" "app" {
   }
 
   tags = {
-    Name = "game-price-app"
+    Name = "nukaloot-app"
   }
 
   lifecycle {
-    prevent_destroy = true
-    ignore_changes  = [ami, user_data]
+    ignore_changes = [ami, user_data]
   }
 }
 
@@ -81,6 +80,6 @@ resource "aws_eip" "app" {
   domain   = "vpc"
 
   tags = {
-    Name = "game-price-app"
+    Name = "nukaloot-app"
   }
 }

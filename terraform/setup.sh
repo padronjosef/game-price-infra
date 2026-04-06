@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-BUCKET_NAME="game-price-finder-tfstate"
+BUCKET_NAME="nukaloot-tfstate"
 REGION="us-east-1"
 
 echo "Creating S3 bucket for Terraform state..."

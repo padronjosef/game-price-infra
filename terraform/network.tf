@@ -12,7 +12,7 @@ data "aws_subnets" "default" {
 
 # EC2 Security Group — only HTTP and SSH from internet
 resource "aws_security_group" "ec2" {
-  name        = "game-price-ec2"
+  name        = "nukaloot-ec2"
   description = "Allow HTTP and SSH"
   vpc_id      = data.aws_vpc.default.id
 
@@ -48,6 +48,6 @@ resource "aws_security_group" "ec2" {
   }
 
   tags = {
-    Name = "game-price-ec2"
+    Name = "nukaloot-ec2"
   }
 }

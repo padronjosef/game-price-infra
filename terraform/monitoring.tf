@@ -1,6 +1,6 @@
 # SNS topic for alerts
 resource "aws_sns_topic" "alerts" {
-  name = "game-price-alerts"
+  name = "nukaloot-alerts"
 }
 
 resource "aws_sns_topic_subscription" "email" {
@@ -19,13 +19,13 @@ resource "aws_route53_health_check" "web" {
   request_interval  = 30
 
   tags = {
-    Name = "game-price-web"
+    Name = "nukaloot-web"
   }
 }
 
 # CloudWatch alarm — fires when health check fails
 resource "aws_cloudwatch_metric_alarm" "web_down" {
-  alarm_name          = "game-price-web-down"
+  alarm_name          = "nukaloot-web-down"
   alarm_description   = "Site is not responding"
   namespace           = "AWS/Route53"
   metric_name         = "HealthCheckStatus"

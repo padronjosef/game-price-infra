@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
 
-APP_DIR="/opt/game-price-finder"
+APP_DIR="/opt/nukaloot"
 SERVICE="$1"
-ENV_FILE="$APP_DIR/game-price-infra/.env"
+ENV_FILE="$APP_DIR/nukaloot-infra/.env"
 
 if [ -z "$SERVICE" ]; then
   echo "Usage: deploy.sh <api|web|infra|all>"
@@ -20,11 +20,11 @@ regenerate_nginx() {
     echo "ERROR: DOMAIN is empty — refusing to regenerate nginx config"
     exit 1
   fi
-  envsubst '$$DOMAIN' < "$APP_DIR/game-price-infra/nginx/nginx.conf.template" > "$APP_DIR/game-price-infra/nginx/nginx.conf"
+  envsubst '$$DOMAIN' < "$APP_DIR/nukaloot-infra/nginx/nginx.conf.template" > "$APP_DIR/nukaloot-infra/nginx/nginx.conf"
   echo "Nginx config regenerated for $DOMAIN"
 }
 
-cd "$APP_DIR/game-price-infra"
+cd "$APP_DIR/nukaloot-infra"
 
 case "$SERVICE" in
   api)

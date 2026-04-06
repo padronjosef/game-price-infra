@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-APP_DIR="/opt/game-price-finder"
+APP_DIR="/opt/nukaloot"
 
 # --- Swap (2GB) ---
 if [ ! -f /swapfile ]; then
@@ -41,13 +41,13 @@ cat <<'CW_CONFIG' > /opt/aws/amazon-cloudwatch-agent/etc/config.json
         "collect_list": [
           {
             "file_path": "/var/log/cloud-init-output.log",
-            "log_group_name": "game-price-finder",
+            "log_group_name": "nukaloot",
             "log_stream_name": "cloud-init",
             "retention_in_days": 7
           },
           {
             "file_path": "/var/log/letsencrypt/letsencrypt.log",
-            "log_group_name": "game-price-finder",
+            "log_group_name": "nukaloot",
             "log_stream_name": "certbot",
             "retention_in_days": 7
           }
@@ -85,14 +85,14 @@ chown ubuntu:ubuntu /home/ubuntu/.ssh/config
 mkdir -p "$APP_DIR"
 chown ubuntu:ubuntu "$APP_DIR"
 
-sudo -u ubuntu git clone git@github.com:padronjosef/game-price-infra.git "$APP_DIR/game-price-infra"
+sudo -u ubuntu git clone git@github.com:padronjosef/nukaloot-infra.git "$APP_DIR/nukaloot-infra"
 
 # --- Create .env for production ---
-cat <<ENV > "$APP_DIR/game-price-infra/.env"
+cat <<ENV > "$APP_DIR/nukaloot-infra/.env"
 INTERNAL_API_URL=http://api:3000
 WEB_APP_DOMAIN=${domain}
 ENV
-chown ubuntu:ubuntu "$APP_DIR/game-price-infra/.env"
+chown ubuntu:ubuntu "$APP_DIR/nukaloot-infra/.env"
 
 # --- Wait for DNS to resolve to this instance ---
 MY_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
@@ -115,15 +115,15 @@ certbot certonly --standalone \
 
 # --- Generate HTTPS nginx config ---
 export DOMAIN="${domain}"
-envsubst '$$DOMAIN' < "$APP_DIR/game-price-infra/nginx/nginx.conf.template" > "$APP_DIR/game-price-infra/nginx/nginx.conf"
+envsubst '$$DOMAIN' < "$APP_DIR/nukaloot-infra/nginx/nginx.conf.template" > "$APP_DIR/nukaloot-infra/nginx/nginx.conf"
 
 # --- Start services (pull pre-built images from GHCR) ---
-cd "$APP_DIR/game-price-infra"
+cd "$APP_DIR/nukaloot-infra"
 sudo -u ubuntu docker compose -f docker-compose.prod.yml pull
 sudo -u ubuntu docker compose -f docker-compose.prod.yml up -d
 
 # --- Cron: cert renewal + weekly Docker cleanup ---
 cat <<'CRON' | crontab -
-0 0,12 * * * cd /opt/game-price-finder/game-price-infra && docker compose -f docker-compose.prod.yml stop nginx && certbot renew --quiet && docker compose -f docker-compose.prod.yml start nginx
+0 0,12 * * * cd /opt/nukaloot/nukaloot-infra && docker compose -f docker-compose.prod.yml stop nginx && certbot renew --quiet && docker compose -f docker-compose.prod.yml start nginx
 0 3 * * 0 docker image prune -af && docker builder prune -af
 CRON

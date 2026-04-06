@@ -18,13 +18,13 @@ services:
 
   api:
     build:
-      context: ../game-price-api
+      context: ../nukaloot-api
       dockerfile: Dockerfile.dev
     restart: unless-stopped
     ports:
       - "3002:3000"
     volumes:
-      - ../game-price-api/src:/app/src
+      - ../nukaloot-api/src:/app/src
     environment:
       DB_HOST: db
       DB_PORT: 5432
@@ -39,18 +39,19 @@ services:
 
   web:
     build:
-      context: ../game-price-web
+      context: ../nukaloot-web
       dockerfile: Dockerfile.dev
     restart: unless-stopped
     ports:
       - "3003:3003"
     volumes:
-      - ../game-price-web/src:/app/src
-      - ../game-price-web/public:/app/public
+      - ../nukaloot-web/src:/app/src
+      - ../nukaloot-web/public:/app/public
     environment:
       INTERNAL_API_URL: http://api:3000
       PORT: "3003"
       WATCHPACK_POLLING: "true"
+      NEXT_TURBO_POLL_INTERVAL: "1000"
     depends_on:
       - api
 

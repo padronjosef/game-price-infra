@@ -5,7 +5,7 @@ variable "aws_region" {
 }
 
 variable "domain" {
-  description = "Domain name (e.g. game-price-finder.com)"
+  description = "Domain name (e.g. nukaloot.com)"
   type        = string
 }
 

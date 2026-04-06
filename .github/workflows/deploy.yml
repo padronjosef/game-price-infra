@@ -51,4 +51,4 @@ jobs:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
-          script: /opt/game-price-finder/game-price-infra/terraform/scripts/deploy.sh infra
+          script: /opt/nukaloot/nukaloot-infra/terraform/scripts/deploy.sh infra

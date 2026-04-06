@@ -27,7 +27,7 @@ services:
       - web
 
   web:
-    image: ghcr.io/padronjosef/game-price-web:latest
+    image: ghcr.io/padronjosef/nukaloot-web:latest
     restart: unless-stopped
     environment:
       INTERNAL_API_URL: http://api:3000
@@ -35,7 +35,7 @@ services:
       - api
 
   api:
-    image: ghcr.io/padronjosef/game-price-api:latest
+    image: ghcr.io/padronjosef/nukaloot-api:latest
     restart: unless-stopped
     environment:
       PORT: "3000"

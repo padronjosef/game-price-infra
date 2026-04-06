@@ -1,6 +1,6 @@
-# Game Price Infra
+# Nukaloot Infra
 
-Infrastructure and orchestration for the Game Price Finder project. Docker Compose for local dev, Terraform for AWS production.
+Infrastructure and orchestration for the Nukaloot project. Docker Compose for local dev, Terraform for AWS production.
 
 ## Tech Stack
 
@@ -32,9 +32,9 @@ No one outside the VPC can reach the API or the database.
 
 ```
 parent-folder/
-  game-price-api/
-  game-price-web/
-  game-price-infra/    <-- you are here
+  nukaloot-api/
+  nukaloot-web/
+  nukaloot-infra/    <-- you are here
 ```
 
 ### Development
@@ -49,7 +49,7 @@ docker compose up
 | **api** | `3002` | NestJS backend with hot-reload |
 | **db** | `5434` | PostgreSQL 16 |
 
-Source code is mounted as volumes. Changes to `game-price-api/src/` and `game-price-web/src/` are picked up automatically.
+Source code is mounted as volumes. Changes to `nukaloot-api/src/` and `nukaloot-web/src/` are picked up automatically.
 
 ### Environment Variables
 
@@ -83,7 +83,7 @@ After apply: add the `github_deploy_public_key` output as an SSH key on your Git
 ## Project Structure
 
 ```
-game-price-infra/
+nukaloot-infra/
   docker-compose.yml          # Local development
   docker-compose.prod.yml     # Production (Nginx + Web + API, DB is RDS)
   nginx/
@@ -123,5 +123,5 @@ All 3 repos use the same convention: prefix commit messages with `[major]`, `[mi
 
 | Repo | Description |
 |------|-------------|
-| [game-price-api](https://github.com/padronjosef/game-price-api) | Backend API (NestJS, TypeORM, Playwright) |
-| [game-price-web](https://github.com/padronjosef/game-price-web) | Frontend (Next.js, React, Tailwind) |
+| [nukaloot-api](https://github.com/padronjosef/nukaloot-api) | Backend API (NestJS, TypeORM, Playwright) |
+| [nukaloot-web](https://github.com/padronjosef/nukaloot-web) | Frontend (Next.js, React, Tailwind) |

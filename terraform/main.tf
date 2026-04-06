@@ -2,7 +2,7 @@ terraform {
   required_version = ">= 1.5"
 
   backend "s3" {
-    bucket = "game-price-finder-tfstate"
+    bucket = "nukaloot-tfstate"
     key    = "terraform.tfstate"
     region = "us-east-1"
   }
