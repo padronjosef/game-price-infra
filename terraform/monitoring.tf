@@ -97,3 +97,121 @@ resource "aws_cloudwatch_metric_alarm" "memory_high" {
     InstanceId = aws_instance.app.id
   }
 }
+
+# --- CloudWatch Dashboard ---
+
+resource "aws_cloudwatch_dashboard" "main" {
+  dashboard_name = "nukaloot"
+
+  dashboard_body = jsonencode({
+    widgets = [
+      {
+        type   = "metric"
+        x      = 0
+        y      = 0
+        width  = 12
+        height = 6
+        properties = {
+          title  = "CPU Utilization (%)"
+          region = var.aws_region
+          metrics = [
+            ["AWS/EC2", "CPUUtilization", "InstanceId", aws_instance.app.id, { stat = "Average" }]
+          ]
+          period = 300
+          yAxis  = { left = { min = 0, max = 100 } }
+          annotations = {
+            horizontal = [{ value = 80, label = "Alarm threshold", color = "#d62728" }]
+          }
+        }
+      },
+      {
+        type   = "metric"
+        x      = 12
+        y      = 0
+        width  = 12
+        height = 6
+        properties = {
+          title  = "Memory Used (%)"
+          region = var.aws_region
+          metrics = [
+            ["CWAgent", "mem_used_percent", "InstanceId", aws_instance.app.id, { stat = "Average" }]
+          ]
+          period = 300
+          yAxis  = { left = { min = 0, max = 100 } }
+          annotations = {
+            horizontal = [{ value = 80, label = "Alarm threshold", color = "#d62728" }]
+          }
+        }
+      },
+      {
+        type   = "metric"
+        x      = 0
+        y      = 6
+        width  = 12
+        height = 6
+        properties = {
+          title  = "Disk Used (%)"
+          region = var.aws_region
+          metrics = [
+            ["CWAgent", "disk_used_percent", "InstanceId", aws_instance.app.id, "path", "/", "device", "nvme0n1p1", "fstype", "ext4", { stat = "Maximum" }]
+          ]
+          period = 300
+          yAxis  = { left = { min = 0, max = 100 } }
+          annotations = {
+            horizontal = [{ value = 80, label = "Alarm threshold", color = "#d62728" }]
+          }
+        }
+      },
+      {
+        type   = "metric"
+        x      = 12
+        y      = 6
+        width  = 12
+        height = 6
+        properties = {
+          title  = "Network Traffic (bytes)"
+          region = var.aws_region
+          metrics = [
+            ["AWS/EC2", "NetworkIn", "InstanceId", aws_instance.app.id, { stat = "Sum", label = "In" }],
+            ["AWS/EC2", "NetworkOut", "InstanceId", aws_instance.app.id, { stat = "Sum", label = "Out" }]
+          ]
+          period = 300
+        }
+      },
+      {
+        type   = "metric"
+        x      = 0
+        y      = 12
+        width  = 12
+        height = 6
+        properties = {
+          title  = "Status Checks"
+          region = var.aws_region
+          metrics = [
+            ["AWS/EC2", "StatusCheckFailed", "InstanceId", aws_instance.app.id, { stat = "Maximum", label = "Any Failed" }],
+            ["AWS/EC2", "StatusCheckFailed_Instance", "InstanceId", aws_instance.app.id, { stat = "Maximum", label = "Instance" }],
+            ["AWS/EC2", "StatusCheckFailed_System", "InstanceId", aws_instance.app.id, { stat = "Maximum", label = "System" }]
+          ]
+          period = 300
+          yAxis  = { left = { min = 0, max = 1 } }
+        }
+      },
+      {
+        type   = "metric"
+        x      = 12
+        y      = 12
+        width  = 12
+        height = 6
+        properties = {
+          title  = "CPU Credit Balance"
+          region = var.aws_region
+          metrics = [
+            ["AWS/EC2", "CPUCreditBalance", "InstanceId", aws_instance.app.id, { stat = "Average" }],
+            ["AWS/EC2", "CPUCreditUsage", "InstanceId", aws_instance.app.id, { stat = "Average" }]
+          ]
+          period = 300
+        }
+      }
+    ]
+  })
+}
