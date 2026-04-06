@@ -10,18 +10,12 @@ variable "domain" {
 }
 
 variable "ami_id" {
-  description = "AMI ID for the EC2 instance (Ubuntu 22.04)"
+  description = "AMI ID for the EC2 instance (Ubuntu 24.04 ARM)"
   type        = string
 }
 
 variable "ssh_public_key_path" {
   description = "Path to the SSH public key for EC2 access"
   type        = string
-  default     = "~/.ssh/id_rsa.pub"
-}
-
-variable "alert_email" {
-  description = "Email for health check alerts"
-  type        = string
-  sensitive   = true
+  default     = "~/.ssh/gh-padronjosef-aws.pub"
 }

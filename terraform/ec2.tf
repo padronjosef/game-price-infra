@@ -9,52 +9,12 @@ resource "tls_private_key" "github_deploy" {
   algorithm = "ED25519"
 }
 
-# IAM role so EC2 can push CloudWatch logs
-resource "aws_iam_role" "ec2_app" {
-  name = "nukaloot-ec2-role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Action = "sts:AssumeRole"
-      Effect = "Allow"
-      Principal = { Service = "ec2.amazonaws.com" }
-    }]
-  })
-}
-
-resource "aws_iam_role_policy" "ec2_logs" {
-  name = "cloudwatch-logs"
-  role = aws_iam_role.ec2_app.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect = "Allow"
-        Action = [
-          "logs:CreateLogGroup",
-          "logs:CreateLogStream",
-          "logs:PutLogEvents",
-          "logs:DescribeLogStreams",
-        ]
-        Resource = ["arn:aws:logs:*:*:*"]
-      }
-    ]
-  })
-}
-
-resource "aws_iam_instance_profile" "ec2_app" {
-  name = "nukaloot-ec2-profile"
-  role = aws_iam_role.ec2_app.name
-}
-
 resource "aws_instance" "app" {
-  ami                    = var.ami_id
-  instance_type          = "t4g.nano"
-  key_name               = aws_key_pair.deployer.key_name
-  vpc_security_group_ids = [aws_security_group.ec2.id]
-  iam_instance_profile   = aws_iam_instance_profile.ec2_app.name
+  ami                         = var.ami_id
+  instance_type               = "t4g.micro"
+  key_name                    = aws_key_pair.deployer.key_name
+  vpc_security_group_ids      = [aws_security_group.ec2.id]
+  associate_public_ip_address = true
 
   user_data = templatefile("${path.module}/scripts/user-data.sh", {
     github_deploy_key = tls_private_key.github_deploy.private_key_openssh
@@ -72,14 +32,5 @@ resource "aws_instance" "app" {
 
   lifecycle {
     ignore_changes = [ami, user_data]
-  }
-}
-
-resource "aws_eip" "app" {
-  instance = aws_instance.app.id
-  domain   = "vpc"
-
-  tags = {
-    Name = "nukaloot-app"
   }
 }

@@ -2,9 +2,10 @@ terraform {
   required_version = ">= 1.5"
 
   backend "s3" {
-    bucket = "nukaloot-tfstate"
-    key    = "terraform.tfstate"
-    region = "us-east-1"
+    bucket  = "nukaloot-tfstate"
+    key     = "terraform.tfstate"
+    region  = "us-east-1"
+    profile = "nukaloot"
   }
 
   required_providers {
@@ -16,13 +17,10 @@ terraform {
       source  = "hashicorp/tls"
       version = "~> 4.0"
     }
-    random = {
-      source  = "hashicorp/random"
-      version = "~> 3.0"
-    }
   }
 }
 
 provider "aws" {
-  region = var.aws_region
+  region  = var.aws_region
+  profile = "nukaloot"
 }

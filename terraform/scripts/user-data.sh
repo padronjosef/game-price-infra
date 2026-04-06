@@ -14,7 +14,7 @@ fi
 
 # --- Install Docker ---
 apt-get update -y
-apt-get install -y ca-certificates curl gnupg awscli jq dnsutils certbot
+apt-get install -y ca-certificates curl gnupg
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
 chmod a+r /etc/apt/keyrings/docker.gpg
@@ -26,41 +26,6 @@ apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 
 systemctl enable docker
 usermod -aG docker ubuntu
-
-# --- CloudWatch Agent ---
-ARCH=$(dpkg --print-architecture)
-curl -sO "https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/$ARCH/latest/amazon-cloudwatch-agent.deb"
-dpkg -i amazon-cloudwatch-agent.deb
-rm amazon-cloudwatch-agent.deb
-
-cat <<'CW_CONFIG' > /opt/aws/amazon-cloudwatch-agent/etc/config.json
-{
-  "logs": {
-    "logs_collected": {
-      "files": {
-        "collect_list": [
-          {
-            "file_path": "/var/log/cloud-init-output.log",
-            "log_group_name": "nukaloot",
-            "log_stream_name": "cloud-init",
-            "retention_in_days": 7
-          },
-          {
-            "file_path": "/var/log/letsencrypt/letsencrypt.log",
-            "log_group_name": "nukaloot",
-            "log_stream_name": "certbot",
-            "retention_in_days": 7
-          }
-        ]
-      }
-    }
-  }
-}
-CW_CONFIG
-
-/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
-  -a fetch-config -m ec2 \
-  -c file:/opt/aws/amazon-cloudwatch-agent/etc/config.json -s
 
 # --- SSH key for GitHub (needed for infra repo) ---
 mkdir -p /home/ubuntu/.ssh
@@ -94,26 +59,7 @@ WEB_APP_DOMAIN=${domain}
 ENV
 chown ubuntu:ubuntu "$APP_DIR/nukaloot-infra/.env"
 
-# --- Wait for DNS to resolve to this instance ---
-MY_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
-for i in $(seq 1 30); do
-  RESOLVED=$(dig +short ${domain} @8.8.8.8 2>/dev/null)
-  if [ "$RESOLVED" = "$MY_IP" ]; then
-    echo "DNS resolved: ${domain} -> $MY_IP"
-    break
-  fi
-  echo "Waiting for DNS... (attempt $i/30, got: $RESOLVED, expected: $MY_IP)"
-  sleep 10
-done
-
-# --- Get SSL certificate ---
-certbot certonly --standalone \
-  -d "${domain}" \
-  --non-interactive \
-  --agree-tos \
-  --register-unsafely-without-email
-
-# --- Generate HTTPS nginx config ---
+# --- Generate nginx config ---
 export DOMAIN="${domain}"
 envsubst '$$DOMAIN' < "$APP_DIR/nukaloot-infra/nginx/nginx.conf.template" > "$APP_DIR/nukaloot-infra/nginx/nginx.conf"
 
@@ -122,8 +68,7 @@ cd "$APP_DIR/nukaloot-infra"
 sudo -u ubuntu docker compose -f docker-compose.prod.yml pull
 sudo -u ubuntu docker compose -f docker-compose.prod.yml up -d
 
-# --- Cron: cert renewal + weekly Docker cleanup ---
+# --- Cron: weekly Docker cleanup ---
 cat <<'CRON' | crontab -
-0 0,12 * * * cd /opt/nukaloot/nukaloot-infra && docker compose -f docker-compose.prod.yml stop nginx && certbot renew --quiet && docker compose -f docker-compose.prod.yml start nginx
 0 3 * * 0 docker image prune -af && docker builder prune -af
 CRON
